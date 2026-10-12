@@ -61,8 +61,7 @@ def syncr(path_source):
 
 
 def main():
-    print("== WELCOME ==")
-    print("Sync files with rsync\n")
+    print("=== WELCOME ===\nSync files with rsync")
     print()
     path_source = input("Insert source path (use /* at the end to sync folder contents): ")
     syncr(path_source)
