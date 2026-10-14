@@ -135,7 +135,7 @@ rsync -rltvP --delay-updates \
 ```
 
 ### SSH PASSWORD
-
+---
 The SSH key option is included only when a custom private key is enabled. If a password is used instead, the script configures the `-e` option to use `sshpass -e ssh` to automatically provide the password during the transfer.
 
 For use sshpass on Debian or Ubuntu, install the required system packages with:
