@@ -7,7 +7,7 @@ The script allows you to choose between a saved configuration and a temporary co
 ## Features
 
 - **File and directory synchronization** using rsync.
-- **SSH authentication** with a custom private key.
+- **SSH authentication** with a custom private key or an SSH password.
 - **Persistent configuration** stored in a JSON file.
 - **Temporary configurations** that do not modify saved settings.
 - **Flexible remote destinations** that can be changed for individual transfers.
@@ -22,6 +22,7 @@ Before using this script, make sure you have:
 - Python 3.8 or later.
 - `rsync` installed on the local machine.
 - SSH client installed and available in your system's `PATH`.
+- `sshpass` installed if you plan to authenticate using an SSH password instead of a private key.
 - Access to a remote server with rsync installed.
 - SSH authentication configured on the remote server.
 
@@ -29,7 +30,7 @@ On Debian or Ubuntu, install the required system packages with:
 
 ```bash
 sudo apt update
-sudo apt install rsync openssh-client python3
+sudo apt install rsync openssh-client python3 sshpass
 ```
 
 ## Installation
@@ -85,6 +86,7 @@ Choose not to load the saved configuration to enter the connection details manua
 You will be asked for:
 
 - Whether to use a custom SSH private key.
+- If you don't use a key, whether you want to use an SSH password for your server.
 - The remote server address, in `user@host` format.
 - The remote destination directory.
 - The local source path, which is requested at the beginning.
@@ -99,8 +101,9 @@ Example:
 
 ```json
 {
-    "use_ssh_key": true,
-    "ssh_key": "~/.ssh/priv_key",
+    "use_ssh_key": false,
+    "ssh_key": "",
+    "ssh_pw": "your_ssh_password",
     "server": "guest@IP_server",
     "remote_path": "/home/user/movie/"
 }
@@ -112,12 +115,13 @@ Example:
 |---|---|
 | `use_ssh_key` | Enables the use of a custom SSH private key when set to `true`. |
 | `ssh_key` | Path to the SSH private key. The `~` notation is supported. |
+| `ssh_pw` | The SSH password used for authentication when `use_ssh_key` is false. This requires `sshpass` to be installed. |
 | `server` | Remote server address in `user@host` format. |
 | `remote_path` | Destination directory on the remote server. |
 
 You can edit this file manually at any time.
 
-**Important:** Keep your private SSH key secure. The configuration stores only its path, not the key itself.
+**Important:** Keep your private SSH key and password secure. The configuration stores only its path or the cleartext password depending on the configuration.
 
 ## How synchronization works
 
@@ -130,7 +134,7 @@ rsync -rltvP --delay-updates \
     guest@serverIP:/home/user/movie/
 ```
 
-The SSH option is included only when a custom private key is enabled.
+The SSH key option is included only when a custom private key is enabled. If a password is used instead, the script configures the `-e` option to use `sshpass -e ssh` to automatically provide the password during the transfer.
 
 ### Rsync options
 
