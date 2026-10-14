@@ -89,10 +89,7 @@ def syncr(path_source):
 
     command.extend([path_source, f'{config["server"]}:{remote_path}'])
 
-
-    print(command)
-
-    #subprocess.run(command, check=True)
+    subprocess.run(command, check=True)
 
 
 def main():
