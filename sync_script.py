@@ -9,55 +9,90 @@ def syncr(path_source):
     use_saved = False
 
     if os.path.exists(config_file):
-        use_saved = input("Do you want to load the configuration from config.json? (y/n): ").lower() in ("y", "yes")
+        ac=input("Do you want to load the configuration from config.json? (y/n): ").lower()
 
-    if use_saved:
-        
-        with open(config_file, "r", encoding="utf-8") as f:
-            config = json.load(f)
+        if ac=="y" or ac=="yes":
+            use_saved=True
 
-        
-        use_current_path = input("Do you want to use the destination saved in config.json? (y/n): ").lower() in ("y", "yes")
+    try:
+        if use_saved!=False:
 
-        if use_current_path:
-            remote_path = config["remote_path"]
+            with open(config_file, "r", encoding="utf-8") as f:
+                config = json.load(f)
+
+
+            use_current_path = input("Do you want to use the destination saved in config.json? (y/n): ").lower() in ("y", "yes")
+
+            if use_current_path:
+                remote_path = config["remote_path"]
+
+            else:
+                remote_path = input("Insert remote destination path (start with /): ")
+
+                overwrite = input("Do you want to overwrite the saved destination in config.json? (y/n): ").lower() in ("y", "yes")
+
+                if overwrite:
+                    config["remote_path"] = remote_path
+
+                    with open(config_file, "w", encoding="utf-8") as f:
+                        json.dump(config, f, indent=5)
 
         else:
+
+            use_ssh=False
+
+            ab = input("You log in server with SSH key? (y/n): ").lower()
+            ssh_key=""
+            ssh_pw=""
+
+            if ab=="y" or ab=="yes":
+                use_ssh=True
+                ssh_key=input("Insert path for your private SSH key: ")
+            else:
+                af=input("Do you have a password ssh for your server? (y/n): ")
+                if af=="y" or af=="yes":
+                    ssh_pw=input("Insert your ssh password: ")
+
+            server=input("Insert your server (user@server): ")
             remote_path = input("Insert remote destination path (start with /): ")
 
-            overwrite = input("Do you want to overwrite the saved destination in config.json? (y/n): ").lower() in ("y", "yes")
+            config = {
+                "use_ssh_key": use_ssh,
+                "ssh_key": ssh_key,
+                "ssh_pw":ssh_pw,
+                "server": server,
+                "remote_path": remote_path
+            }
 
-            if overwrite:
-                config["remote_path"] = remote_path
+            save_config = input("Do you want save the current settings? (y/n): ").lower()
 
+            if save_config == "y" or save_config == "yes":
                 with open(config_file, "w", encoding="utf-8") as f:
-                    json.dump(config, f, indent=4)
+                    json.dump(config, f, indent=5)
 
-    else:
-        
-        ab = input("You log in server with SSH key? (y/n): ").lower()
+                print("Configuration saved successfully!!!")
 
-        config = {
-            "use_ssh_key": ab in ("y", "yes"),
-            "ssh_key": "",
-            "server": input("Insert your server (user@IP_server): "),
-            "remote_path": ""
-        }
+        command = ["rsync", "-rltvP", "--delay-updates"]
 
-        if config["use_ssh_key"]:
-            config["ssh_key"] = input("Insert path for your private SSH key: ")
-
-        remote_path = input("Insert remote destination path (start with /): ")
-
-    command = ["rsync", "-rltvP", "--delay-updates"]
+    except Exception as  e:
+        print(e)
+        print()
+        return main()
 
     if config["use_ssh_key"]:
         ssh_key = os.path.expanduser(config["ssh_key"])
-        command.extend(["-e", f"ssh -i {ssh_key}"])
+        command.extend(["-e", f"ssh -i '{ssh_key}'"])
+    else:
+        if config["ssh_pw"]!="":
+            command.extend(["-e",f"sshpass -e ssh"])
+            os.environ["SSHPASS"] = config["ssh_key"]
 
-    command.extend([path_source,f'{config["server"]}:{remote_path}'])
+    command.extend([path_source, f'{config["server"]}:{remote_path}'])
 
-    subprocess.run(command, check=True)
+
+    print(command)
+
+    #subprocess.run(command, check=True)
 
 
 def main():
